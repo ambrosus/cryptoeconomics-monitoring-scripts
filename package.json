@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "ambrosus-node-contracts": "0.0.38",
+    "ambrosus-node-contracts": "0.0.39",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
     "web3": "1.0.0-beta.34"
@@ -13,10 +13,7 @@
   "scripts": {
     "sync_bundles": "babel-node src/sync_bundles.js",
     "test:sync_bundles": "source ./test.env && babel-node src/sync_bundles.js",
-    "dev:sync_bundles": "source ./dev.env && babel-node src/sync_bundles.js",
-    "probe_nodes": "babel-node src/probe_nodes.js",
-    "test:probe_nodes": "source ./test.env && babel-node src/probe_nodes.js",
-    "dev:probe_nodes": "source ./dev.env && babel-node src/probe_nodes.js"
+    "dev:sync_bundles": "source ./dev.env && babel-node src/sync_bundles.js"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
