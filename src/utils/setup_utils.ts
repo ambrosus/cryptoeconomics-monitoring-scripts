@@ -7,6 +7,12 @@ import {
   BundleStoreWrapper
 } from 'ambrosus-node-contracts';
 
+declare var process : {
+  env: {
+    NUMBER_OF_BLOCKS_TO_SYNC: number
+  }
+}
+
 const setupWeb3 = async (rpc) => {
   return new Web3(rpc);
 };
