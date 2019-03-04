@@ -32,7 +32,7 @@ const setupContracts = (web3: Web3): any => {
   return {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper};
 };
 
-const defineBlockRange = async (blockchainStateWrapper): Promise<BlockRange> => {
+const defineBlockRange = async (blockchainStateWrapper: any): Promise<BlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
   const fromBlock: number = toBlock - process.env.NUMBER_OF_BLOCKS_TO_SYNC;
   return {fromBlock, toBlock};
