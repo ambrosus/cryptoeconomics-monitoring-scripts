@@ -10,17 +10,17 @@ import {
   BlockRange
 } from './type_utils';
 
-declare var process : {
+declare var process: {
   env: {
     NUMBER_OF_BLOCKS_TO_SYNC: number
   }
-}
+};
 
 const setupWeb3 = (rpc: string): Web3 => {
   return new Web3(rpc);
 };
 
-const setupContracts = (web3: Web3): any => { 
+const setupContracts = (web3: Web3): any => {
   const headContractAddress: string = '0x0000000000000000000000000000000000000F10';
   const headWrapper = new HeadWrapper(headContractAddress, web3);
   const blockchainStateWrapper = new BlockchainStateWrapper(web3);

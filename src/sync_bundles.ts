@@ -36,10 +36,10 @@ const syncBundles = async (): Promise<void> => {
     progressBar.increment(1);
   }
 
-  printInfo(`Saving output...`)
+  printInfo(`Saving output...`);
   await saveData(gatheredBundlesData, 'bundles.json');
-  
+
   printSuccess(`Done!`);
 };
 
-syncBundles();
+syncBundles().catch(console.log);
