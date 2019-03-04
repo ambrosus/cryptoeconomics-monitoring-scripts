@@ -2,8 +2,9 @@ import {setupWeb3, setupContracts, defineBlockRange} from './utils/setup_utils';
 import {printInfo, setupBar, printSuccess} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
 
-const syncBundles = async () => {
+const syncBundles = async (): Promise<void> => {
   const web3 = await setupWeb3(process.env.ENVIRONMENT);
+
   const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3);
   const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper);
 
@@ -32,7 +33,7 @@ const syncBundles = async () => {
     const completeBundleData = {...bundleDataFromEvent, storagePeriods, bundleUrl};
 
     gatheredBundlesData.push(completeBundleData);
-    progressBar.increment();
+    progressBar.increment(1);
   }
 
   printInfo(`Saving output...`)

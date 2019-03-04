@@ -16,8 +16,10 @@
     "dev:sync_bundles": "source ./dev.env && ts-node src/sync_bundles.ts"
   },
   "devDependencies": {
-    "@types/node": "^11.9.6",
     "ts-node": "^8.0.2",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.3.3333",
+    "@types/node": "^11.9.6",
+    "@types/cli-progress": "1.8.0",
+    "@types/web3": "^1.0.18"
   }
 }
