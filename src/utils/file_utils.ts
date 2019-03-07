@@ -1,3 +1,4 @@
+import path from 'path';
 import fs from 'fs';
 const fsPromises = fs.promises;
 
@@ -7,7 +8,7 @@ const writeFile = async (path: string, contents: any): Promise<void> => {
 };
 
 const makeDirectory = async (path: string): Promise<void> => {
-  await fsPromises.mkdir(path);
+  await fsPromises.mkdir(path, { recursive: true });
 };
 
 const checkPath = async (path: string): Promise<void>  => {
@@ -22,9 +23,9 @@ const ensureOutputDirectoryExists = async (outputDirectory: string): Promise<voi
   }
 };
 
-const saveData = async (data: any, filemane: string): Promise<void>  => {
-  await ensureOutputDirectoryExists(process.env.OUTPUT_DIRECTORY);
-  await writeFile(`${process.env.OUTPUT_DIRECTORY}/${filemane}`, data);
+const saveData = async (data: any, outputPath: string): Promise<void>  => {
+  await ensureOutputDirectoryExists(path.dirname(outputPath));
+  await writeFile(outputPath, data);
 };
 
 export {saveData};

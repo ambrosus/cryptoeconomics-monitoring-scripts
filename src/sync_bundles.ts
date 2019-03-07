@@ -1,21 +1,34 @@
-import {setupWeb3, setupContracts, defineBlockRange} from './utils/setup_utils';
-import {printInfo, setupBar, printSuccess} from './utils/dialog_utils';
+import {setupWeb3, setupContracts, defineBlockRange, chainUrl} from './utils/setup_utils';
+import {printInfo, setupBar, printSuccess, printHelp, parseArgs} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
+import path from 'path';
 
 const syncBundles = async (): Promise<void> => {
-  const web3 = await setupWeb3(process.env.ENVIRONMENT);
+  const options = parseArgs();
+  const web3 = await setupWeb3(chainUrl(options.env));
+  if (!options.blockcount || options.blockcount < 0) {
+    printHelp({
+      header: 'Bundles',
+      content: 'Gathers info about latest bundle uploads.'
+    });
+    return;
+  }
 
   const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3);
-  const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper);
+  const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
 
-  printInfo(`Fetching ${process.env.NUMBER_OF_BLOCKS_TO_SYNC} blocks (${fromBlock} -> ${toBlock})`);
+  printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);
   const bundleStorageEvents = await bundleStoreWrapper.bundlesStored(fromBlock, toBlock);
+  if (bundleStorageEvents.length === 0) {
+    printInfo('No events were found');
+    return;
+  }
   printInfo(`${bundleStorageEvents.length} events successfully extracted`);
 
   printInfo(`Processing events...`);
   const progressBar = await setupBar(bundleStorageEvents.length);
 
-  let gatheredBundlesData = [];
+  const gatheredBundlesData = [];
 
   for(let index = 0; index < bundleStorageEvents.length; index++) {
     const bundleDataFromEvent = {
@@ -29,17 +42,20 @@ const syncBundles = async (): Promise<void> => {
 
     const storagePeriods =  await shelteringWrapper.bundleStoragePeriods(bundleDataFromEvent.bundleId);
     const nodeUrl = await rolesWrapper.nodeUrl(bundleDataFromEvent.uploaderId);
-    const bundleUrl = `${nodeUrl}/bundle/${bundleDataFromEvent.bundleId}`;
+    const bundleUrl = path.join(nodeUrl, 'bundle', bundleDataFromEvent.bundleId);
     const completeBundleData = {...bundleDataFromEvent, storagePeriods, bundleUrl};
 
     gatheredBundlesData.push(completeBundleData);
     progressBar.increment(1);
   }
 
-  printInfo(`Saving output...`);
-  await saveData(gatheredBundlesData, 'bundles.json');
-
-  printSuccess(`Done!`);
+  if (options.out) {
+    printInfo(`Saving output...`);
+    await saveData(gatheredBundlesData, options.out);
+    printSuccess(`Done!`);
+  } else {
+    console.log(JSON.stringify(gatheredBundlesData, null, 2));
+  }
 };
 
-syncBundles().catch(console.log);
+syncBundles().catch(console.error);

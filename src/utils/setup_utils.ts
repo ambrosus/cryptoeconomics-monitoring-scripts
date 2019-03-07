@@ -10,12 +10,6 @@ import {
   BlockRange
 } from './type_utils';
 
-declare var process: {
-  env: {
-    NUMBER_OF_BLOCKS_TO_SYNC: number
-  }
-};
-
 const setupWeb3 = (rpc: string): Web3 => {
   return new Web3(rpc);
 };
@@ -32,10 +26,12 @@ const setupContracts = (web3: Web3): any => {
   return {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper};
 };
 
-const defineBlockRange = async (blockchainStateWrapper: any): Promise<BlockRange> => {
+const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<BlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
-  const fromBlock: number = toBlock - process.env.NUMBER_OF_BLOCKS_TO_SYNC;
+  const fromBlock: number = toBlock - numberOfBlocksToSync;
   return {fromBlock, toBlock};
 };
 
-export {setupWeb3, setupContracts, defineBlockRange};
+const chainUrl = (env?: string): string => (env && env !== 'main') ? `https://network.ambrosus-${env}.com` : 'https://network.ambrosus.com';
+
+export {setupWeb3, setupContracts, defineBlockRange, chainUrl};
