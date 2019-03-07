@@ -9,7 +9,7 @@ const syncBundles = async (): Promise<void> => {
   if (!options.blockcount || options.blockcount < 0) {
     printHelp({
       header: 'Bundles',
-      content: 'Gathers latest bundles.'
+      content: 'Gathers info about latest bundle uploads.'
     });
     return;
   }
@@ -19,6 +19,10 @@ const syncBundles = async (): Promise<void> => {
 
   printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);
   const bundleStorageEvents = await bundleStoreWrapper.bundlesStored(fromBlock, toBlock);
+  if (bundleStorageEvents.length === 0) {
+    printInfo('No events were found');
+    return;
+  }
   printInfo(`${bundleStorageEvents.length} events successfully extracted`);
 
   printInfo(`Processing events...`);
