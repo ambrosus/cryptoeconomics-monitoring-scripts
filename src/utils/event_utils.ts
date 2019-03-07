@@ -1,9 +1,9 @@
-import {BlockRange} from './type_utils';
+import {IBlockRange, IEvent} from './type_utils';
 import Web3 from 'web3';
 
 const {utils} = new Web3();
 
-const sortChronologically = (events) => {
+const sortChronologically = <T extends IEvent> (events: Array<T>): Array<T> => {
   return events.sort((left, right) => {
     if  (left.blockNumber !== right.blockNumber) {
       return left.blockNumber - right.blockNumber;
@@ -12,7 +12,7 @@ const sortChronologically = (events) => {
   });
 };
 
-const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<BlockRange> => {
+const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<IBlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
   const fromBlock: number = toBlock - numberOfBlocksToSync;
   return {fromBlock, toBlock};
