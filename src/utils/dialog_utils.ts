@@ -21,7 +21,7 @@ const printHelp = (header: {header: string, content?: string}): void => {
   console.log(commandLineUsage([header, {
     header: 'Options',
     optionList: optionDefinitions
-  }]))
+  }]));
 };
 
 const parseArgs = (): CommandLineOptions => commandLineArgs(optionDefinitions);
