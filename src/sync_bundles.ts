@@ -5,7 +5,7 @@ import path from 'path';
 
 const syncBundles = async (): Promise<void> => {
   const options = parseArgs();
-  const web3 = await setupWeb3(chainUrl(options.env));
+  const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
   if (!options.blockcount || options.blockcount < 0) {
     printHelp({
       header: 'Bundles',
