@@ -1,4 +1,5 @@
-import {setupWeb3, setupContracts, defineBlockRange, chainUrl} from './utils/setup_utils';
+import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
+import {defineBlockRange} from './utils/event_utils';
 import {printInfo, setupBar, printSuccess, printHelp, parseArgs} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
 import path from 'path';
