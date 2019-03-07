@@ -3,12 +3,6 @@ import Web3 from 'web3';
 
 const {utils} = new Web3();
 
-declare var process: {
-  env: {
-    NUMBER_OF_BLOCKS_TO_SYNC: number
-  }
-};
-
 const sortChronologically = (events) => {
   return events.sort((left, right) => {
     if  (left.blockNumber !== right.blockNumber) {
@@ -18,9 +12,9 @@ const sortChronologically = (events) => {
   });
 };
 
-const defineBlockRange = async (blockchainStateWrapper: any): Promise<BlockRange> => {
+const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<BlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
-  const fromBlock: number = toBlock - process.env.NUMBER_OF_BLOCKS_TO_SYNC;
+  const fromBlock: number = toBlock - numberOfBlocksToSync;
   return {fromBlock, toBlock};
 };
 
