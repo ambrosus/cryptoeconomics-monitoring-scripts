@@ -1,5 +1,6 @@
 import {IBlockRange, IEvent} from './type_utils';
 import Web3 from 'web3';
+import {constants} from 'ambrosus-node-contracts';
 
 const {utils} = new Web3();
 
@@ -19,16 +20,10 @@ const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSyn
 };
 
 const convertRoleCodeToRoleName = (roleCode) => {
-  switch (roleCode) {
-    case '1':
-      return 'ATLAS';
-    case '2':
-      return 'HERMES';
-    case '3':
-      return 'APOLLO';
-    default:
-      return 'NONE';
+  if(roleCode === constants.ATLAS || roleCode === constants.HERMES || roleCode === constants.APOLLO) {
+    return constants.ROLE_REVERSE_CODES[roleCode];
   }
+    return constants.ROLE_REVERSE_CODES[constants.NONE];
 };
 
 const convertWeiToAmber = (amount) => {
