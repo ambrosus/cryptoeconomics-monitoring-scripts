@@ -3,7 +3,7 @@ import Web3 from 'web3';
 
 const {utils} = new Web3();
 
-const sortChronologically = <T extends IEvent> (events: Array<T>): Array<T> => {
+const sortChronologically = <T extends IEvent> (events: T[]): T[] => {
   return events.sort((left, right) => {
     if  (left.blockNumber !== right.blockNumber) {
       return left.blockNumber - right.blockNumber;
@@ -33,6 +33,6 @@ const convertRoleCodeToRoleName = (roleCode) => {
 
 const convertWeiToAmber = (amount) => {
   return utils.fromWei(amount, 'ether');
-}
+};
 
 export {sortChronologically, defineBlockRange, convertRoleCodeToRoleName, convertWeiToAmber};

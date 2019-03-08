@@ -4,8 +4,8 @@ interface IBlockRange {
 }
 
 interface IEvent {
-  blockNumber: number, 
-  logIndex: number
+  blockNumber: number;
+  logIndex: number;
 }
 
 export {IBlockRange, IEvent};
