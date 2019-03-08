@@ -20,10 +20,10 @@ const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSyn
 };
 
 const convertRoleCodeToRoleName = (roleCode) => {
-  if(roleCode === constants.ATLAS || roleCode === constants.HERMES || roleCode === constants.APOLLO) {
+  if (roleCode === constants.ATLAS || roleCode === constants.HERMES || roleCode === constants.APOLLO) {
     return constants.ROLE_REVERSE_CODES[roleCode];
   }
-    return constants.ROLE_REVERSE_CODES[constants.NONE];
+  return constants.ROLE_REVERSE_CODES[constants.NONE];
 };
 
 const convertWeiToAmber = (amount) => {
