@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "ambrosus-node-contracts": "0.0.39",
+    "ambrosus-node-contracts": "0.0.40",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
     "command-line-args": "^5.0.2",
@@ -14,6 +14,13 @@
   },
   "scripts": {
     "sync_bundles": "ts-node src/sync_bundles.ts",
+    "test:sync_bundles": "yarn sync_bundles -n 100 -o output/bundles.json -e test",
+    "dev:sync_bundles": "yarn sync_bundles -n 100 -o output/bundles.json -e dev",
+    "local:sync_bundles": "yarn sync_bundles -n 100 -o output/bundles.json --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
+    "sync_nodes": "ts-node src/sync_nodes.ts",
+    "test:sync_nodes": "yarn sync_nodes -o output/nodes.json -e test",
+    "dev:sync_nodes": "yarn sync_nodes -o output/nodes.json -e dev",
+    "local:sync_nodes": "yarn sync_nodes -o output/nodes.json --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
     "lint": "tslint src/**/*.ts --fix"
   },
   "devDependencies": {

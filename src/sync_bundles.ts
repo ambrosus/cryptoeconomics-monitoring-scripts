@@ -1,4 +1,5 @@
-import {setupWeb3, setupContracts, defineBlockRange, chainUrl} from './utils/setup_utils';
+import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
+import {defineBlockRange} from './utils/event_utils';
 import {printInfo, setupBar, printSuccess, printHelp, parseArgs} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
 import path from 'path';
@@ -14,7 +15,7 @@ const syncBundles = async (): Promise<void> => {
     return;
   }
 
-  const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3);
+  const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3, options.headcontract);
   const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
 
   printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);

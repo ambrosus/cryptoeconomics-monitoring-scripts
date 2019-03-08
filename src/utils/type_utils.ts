@@ -1,6 +1,11 @@
-interface BlockRange {
+interface IBlockRange {
   fromBlock: number;
   toBlock: number;
 }
 
-export {BlockRange};
+interface IEvent {
+  blockNumber: number;
+  logIndex: number;
+}
+
+export {IBlockRange, IEvent};

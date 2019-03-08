@@ -15,7 +15,8 @@ const optionDefinitions = [
   { name: 'blockcount', alias: 'n', type: Number, description: 'How many recent blocks we want to scan' },
   { name: 'env', alias: 'e', type: String, typeLabel: '{underline main|dev|test}', description: 'Select between environments' },
   { name: 'out', alias: 'o', type: String, description: 'Output file path' },
-  { name: 'rpc', type: String, description: 'Custom RPC' }
+  { name: 'rpc', type: String, description: 'Custom RPC' },
+  { name: 'headcontract', type: String, description: 'Head contract address',  defaultValue: '0x0000000000000000000000000000000000000F10'}
 ];
 
 const printHelp = (header: {header: string, content?: string}): void => {
