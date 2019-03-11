@@ -6,22 +6,22 @@ interface IBlockRange {
 }
 
 interface IEvent extends EventLog {
-  signature: string,
-  type: string,
-  id: string,
+  signature: string;
+  type: string;
+  id: string;
 }
 
 interface IChallenge {
-  blockHash: string,
-  blockNumber: number,
-  transactionHash: string,
-  signature: string,
-  sheltererId: string,
-  bundleId: string,
-  challengeId: string,
-  count?: number,
-  resolverId?: string,
-  penalty?: string
+  blockHash: string;
+  blockNumber: number;
+  transactionHash: string;
+  signature: string;
+  sheltererId: string;
+  bundleId: string;
+  challengeId: string;
+  count?: number;
+  resolverId?: string;
+  penalty?: string;
 }
 
 export {IBlockRange, IEvent, IChallenge};
