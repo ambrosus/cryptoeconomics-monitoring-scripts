@@ -31,14 +31,14 @@ const syncBundles = async (): Promise<void> => {
 
   const gatheredBundlesData = [];
 
-  for(let index = 0; index < bundleStorageEvents.length; index++) {
+  for (const bundleStorageEvent of bundleStorageEvents) {
     const bundleDataFromEvent = {
-      bundleId: bundleStorageEvents[index].returnValues.bundleId,
-      uploaderId: bundleStorageEvents[index].returnValues.uploader,
-      blockHash: bundleStorageEvents[index].blockHash,
-      blockNumber: bundleStorageEvents[index].blockNumber,
-      transactionHash: bundleStorageEvents[index].transactionHash,
-      signature: bundleStorageEvents[index].signature
+      bundleId: bundleStorageEvent.returnValues.bundleId,
+      uploaderId: bundleStorageEvent.returnValues.uploader,
+      blockHash: bundleStorageEvent.blockHash,
+      blockNumber: bundleStorageEvent.blockNumber,
+      transactionHash: bundleStorageEvent.transactionHash,
+      signature: bundleStorageEvent.signature
     };
 
     const storagePeriods =  await shelteringWrapper.bundleStoragePeriods(bundleDataFromEvent.bundleId);
