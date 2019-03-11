@@ -27,7 +27,7 @@ const fetchEventsFromBlockchain = async (options): Promise<{
         content: 'Prints challenges statistics from several newest blocks.'
       }, additionalOptions
     );
-    throw '';
+    throw new Error('');
   }
   printInfo('Connecting to the chain...');
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
@@ -42,8 +42,8 @@ const fetchEventsFromBlockchain = async (options): Promise<{
 
 const printChallengesCount = (challenges: { createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[], timedOutChallenges: ITimedOutChallenge[] }) => {
   printInfo(`
-New challenges: ${challenges.createdChallenges.length}  
-Resolved challenges: ${challenges.resolvedChallenges.length} 
+New challenges: ${challenges.createdChallenges.length}
+Resolved challenges: ${challenges.resolvedChallenges.length}
 Timed out challenges: ${challenges.timedOutChallenges.length}`);
 };
 
