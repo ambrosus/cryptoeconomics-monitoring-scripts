@@ -5,7 +5,8 @@ import {
   BlockchainStateWrapper,
   RolesWrapper,
   BundleStoreWrapper,
-  RolesEventEmitterWrapper
+  RolesEventEmitterWrapper,
+  ChallengesEventEmitterWrapper
 } from 'ambrosus-node-contracts';
 
 const setupWeb3 = (rpc: string): Web3 => {
@@ -20,8 +21,9 @@ const setupContracts = (web3: Web3, headContractAddress: string): any => {
   const rolesWrapper = new RolesWrapper(headWrapper, web3);
   const bundleStoreWrapper = new BundleStoreWrapper(headWrapper, web3);
   const rolesEventEmitterWrapper = new RolesEventEmitterWrapper(headWrapper, web3);
+  const challengesEventEmitterWrapper = new ChallengesEventEmitterWrapper(headWrapper, web3);
 
-  return {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper, rolesEventEmitterWrapper};
+  return {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper, rolesEventEmitterWrapper, challengesEventEmitterWrapper};
 };
 
 const chainUrl = (env?: string): string => (env && env !== 'main') ? `https://network.ambrosus-${env}.com` : 'https://network.ambrosus.com';
