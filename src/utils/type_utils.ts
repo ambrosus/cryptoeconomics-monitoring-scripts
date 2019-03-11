@@ -19,9 +19,18 @@ interface IChallenge {
   sheltererId: string;
   bundleId: string;
   challengeId: string;
-  count?: number;
-  resolverId?: string;
-  penalty?: string;
 }
 
-export {IBlockRange, IEvent, IChallenge};
+interface ICreatedChallenge extends IChallenge {
+  count: number;
+}
+
+interface IResolvedChallenge extends IChallenge {
+  resolverId: string;
+}
+
+interface ITimedOutChallenge extends IChallenge {
+  penalty: string;
+}
+
+export {IBlockRange, IEvent, ICreatedChallenge, IResolvedChallenge, ITimedOutChallenge, IChallenge};

@@ -1,7 +1,7 @@
 import {chainUrl, setupContracts, setupWeb3} from './utils/setup_utils';
 import {parseArgs, printHelp, printInfo, printSuccess} from './utils/dialog_utils';
 import {defineBlockRange} from './utils/event_utils';
-import {IChallenge, IEvent} from './utils/type_utils';
+import {IChallenge, ICreatedChallenge, IEvent, IResolvedChallenge, ITimedOutChallenge} from './utils/type_utils';
 import {saveData} from './utils/file_utils';
 import _ from 'lodash';
 import asciiHistogram from 'ascii-histogram';
@@ -40,14 +40,14 @@ const fetchEventsFromBlockchain = async (options): Promise<{
   return {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, toBlock, fromBlock};
 };
 
-const printChallengesCount = (challenges: { createdChallenges: IChallenge[], resolvedChallenges: IChallenge[], timedOutChallenges: IChallenge[] }) => {
+const printChallengesCount = (challenges: { createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[], timedOutChallenges: ITimedOutChallenge[] }) => {
   printInfo(`
 New challenges: ${challenges.createdChallenges.length}  
 Resolved challenges: ${challenges.resolvedChallenges.length} 
 Timed out challenges: ${challenges.timedOutChallenges.length}`);
 };
 
-const printChallengesCreatedByShelterer = (createdChallenges: IChallenge[]) => {
+const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[]) => {
   const challengesCreatedByShelterer = _(createdChallenges)
     .groupBy((challenge) => challenge.sheltererId)
     .mapValues((challenges) => challenges.length);
@@ -55,7 +55,7 @@ const printChallengesCreatedByShelterer = (createdChallenges: IChallenge[]) => {
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
 };
 
-const printChallengeHistogram = (createdChallenges: IChallenge[], fromBlock: number, toBlock: number, binCount: number = 10) => {
+const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlock: number, toBlock: number, binCount: number = 10) => {
   const blockCount = toBlock - fromBlock + 1;
   const binLength = Math.ceil(blockCount / binCount);
   const bins = _(createdChallenges)
@@ -74,16 +74,23 @@ const printChallengeHistogram = (createdChallenges: IChallenge[], fromBlock: num
   console.log(asciiHistogram(namedHistogram));
 };
 
-const extractDataFromEvent = (events: IEvent[], lastParamName: 'count' | 'resolverId' | 'penalty'): IChallenge[] => events.map((event) => ({
-  blockHash: event.blockHash,
-  blockNumber: event.blockNumber,
-  transactionHash: event.transactionHash,
-  signature: event.signature,
-  sheltererId: event.returnValues.sheltererId,
-  bundleId: event.returnValues.bundleId,
-  challengeId: event.returnValues.challengeId,
-  [lastParamName]: event.returnValues[lastParamName]
-}));
+const extractDataFromEvents = (events: IEvent[], lastParamName: 'count' | 'resolverId' | 'penalty'): IChallenge[] =>
+  events.map((event) => ({
+    blockHash: event.blockHash,
+    blockNumber: event.blockNumber,
+    transactionHash: event.transactionHash,
+    signature: event.signature,
+    sheltererId: event.returnValues.sheltererId,
+    bundleId: event.returnValues.bundleId,
+    challengeId: event.returnValues.challengeId,
+    [lastParamName]: event.returnValues[lastParamName]
+  }));
+
+const extractCreatedChallengesFromEvents = (events: IEvent[]): ICreatedChallenge[] => extractDataFromEvents(events, 'count') as ICreatedChallenge[];
+
+const extractResolvedChallengesFromEvents = (events: IEvent[]): IResolvedChallenge[] => extractDataFromEvents(events, 'resolverId') as IResolvedChallenge[];
+
+const extractTimedOutChallengesFromEvents = (events: IEvent[]): ITimedOutChallenge[] => extractDataFromEvents(events, 'penalty') as ITimedOutChallenge[];
 
 const fetchChallengeStats = async (): Promise<void> => {
   const options = parseArgs(additionalOptions);
@@ -91,9 +98,9 @@ const fetchChallengeStats = async (): Promise<void> => {
   const totalEventsCount = newChallengesEvents.length + resolvedChallengesEvents.length + timedOutChallengesEvents.length;
   printInfo(`${totalEventsCount} events successfully extracted`);
   const challenges = {
-    createdChallenges: extractDataFromEvent(newChallengesEvents, 'count'),
-    resolvedChallenges: extractDataFromEvent(resolvedChallengesEvents, 'resolverId'),
-    timedOutChallenges: extractDataFromEvent(timedOutChallengesEvents, 'penalty')
+    createdChallenges: extractCreatedChallengesFromEvents(newChallengesEvents),
+    resolvedChallenges: extractResolvedChallengesFromEvents(resolvedChallengesEvents),
+    timedOutChallenges: extractTimedOutChallengesFromEvents(timedOutChallengesEvents)
   };
   printChallengesCount(challenges);
   printChallengesCreatedByShelterer(challenges.createdChallenges);
