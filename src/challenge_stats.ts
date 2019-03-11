@@ -32,12 +32,12 @@ const fetchEventsFromBlockchain = async (options): Promise<{
   printInfo('Connecting to the chain...');
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
   const {blockchainStateWrapper, challengesEventEmitterWrapper} = await setupContracts(web3, options.headcontract);
-  const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
+  const {fromBlock, toBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
   printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);
   const newChallengesEvents = await challengesEventEmitterWrapper.challenges(fromBlock, toBlock);
   const resolvedChallengesEvents = await challengesEventEmitterWrapper.resolvedChallenges(fromBlock, toBlock);
   const timedOutChallengesEvents = await challengesEventEmitterWrapper.timedOutChallenges(fromBlock, toBlock);
-  return {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, toBlock, fromBlock};
+  return {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, fromBlock, toBlock};
 };
 
 const printChallengesCount = (challenges: { createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[], timedOutChallenges: ITimedOutChallenge[] }) => {
@@ -55,20 +55,22 @@ const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
 };
 
-const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlock: number, toBlock: number, binCount: number = 10) => {
-  const blockCount = toBlock - fromBlock + 1;
+const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
+  const blockCount = toBlockInclusive - fromBlockInclusive + 1;
   const binLength = Math.ceil(blockCount / binCount);
   const bins = _(createdChallenges)
-    .map((challenge) => Math.floor((challenge.blockNumber - fromBlock) / binLength))
-    .countBy((x) => x)
+    .map((challenge) => Math.floor((challenge.blockNumber - fromBlockInclusive) / binLength))
+    .countBy(_.identity())
     .value();
 
   const namedHistogram = {};
   for (let i = 0; i < binCount; i++) {
-    if (fromBlock + binLength * i > toBlock) {
+    const binStartBlock = fromBlockInclusive + binLength * i;
+    const binEndBlock = Math.min(fromBlockInclusive + binLength * (i + 1) - 1, toBlockInclusive);
+    if (binStartBlock > binEndBlock) {
       break;
     }
-    namedHistogram[`${fromBlock + binLength * i}-${Math.min(fromBlock + binLength * (i + 1) - 1, toBlock)}`] = bins[i] || 0;
+    namedHistogram[`${binStartBlock}-${binEndBlock}`] = bins[i] || 0;
   }
   printInfo('\nNew challenges by block histogram');
   console.log(asciiHistogram(namedHistogram));

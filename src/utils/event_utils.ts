@@ -15,7 +15,7 @@ const sortChronologically = (events: IEvent[]): IEvent[] => {
 
 const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<IBlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
-  const fromBlock: number = Math.max(0, toBlock - numberOfBlocksToSync);
+  const fromBlock: number = Math.max(0, toBlock - numberOfBlocksToSync + 1);
   return {fromBlock, toBlock};
 };
 
