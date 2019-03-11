@@ -6,10 +6,12 @@
   "private": true,
   "dependencies": {
     "ambrosus-node-contracts": "0.0.40",
+    "ascii-histogram": "1.2.0",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
     "command-line-args": "^5.0.2",
     "command-line-usage": "^5.0.5",
+    "lodash": "^4.17.11",
     "web3": "1.0.0-beta.34"
   },
   "scripts": {
@@ -21,6 +23,10 @@
     "test:sync_nodes": "yarn sync_nodes -o output/nodes.json -e test",
     "dev:sync_nodes": "yarn sync_nodes -o output/nodes.json -e dev",
     "local:sync_nodes": "yarn sync_nodes -o output/nodes.json --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
+    "challenge_stats": "ts-node src/challenge_stats.ts",
+    "test:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test",
+    "dev:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e dev",
+    "local:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
     "lint": "tslint 'src/**/*.ts' --fix"
   },
   "devDependencies": {

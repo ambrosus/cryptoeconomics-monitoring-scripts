@@ -4,7 +4,7 @@ import {constants} from 'ambrosus-node-contracts';
 
 const {utils} = new Web3();
 
-const sortChronologically = <T extends IEvent> (events: T[]): T[] => {
+const sortChronologically = (events: IEvent[]): IEvent[] => {
   return events.sort((left, right) => {
     if  (left.blockNumber !== right.blockNumber) {
       return left.blockNumber - right.blockNumber;
@@ -15,7 +15,7 @@ const sortChronologically = <T extends IEvent> (events: T[]): T[] => {
 
 const defineBlockRange = async (blockchainStateWrapper: any, numberOfBlocksToSync: number): Promise<IBlockRange> => {
   const toBlock: number = await blockchainStateWrapper.getCurrentBlockNumber();
-  const fromBlock: number = toBlock - numberOfBlocksToSync;
+  const fromBlock: number = Math.max(0, toBlock - numberOfBlocksToSync + 1);
   return {fromBlock, toBlock};
 };
 

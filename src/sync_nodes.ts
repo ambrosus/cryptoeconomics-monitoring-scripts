@@ -24,11 +24,11 @@ const syncBundles = async (): Promise<void> => {
   printInfo(`Processing events...`);
   const progressBar = await setupBar(totalEventsNumber);
 
-  let nodesState = {};
+  const nodesState = {};
 
-  for(let index = 0; index < totalEventsNumber; index++) {
+  for (let index = 0; index < totalEventsNumber; index++) {
     const nodeAddress = sortedEvents[index].returnValues.nodeAddress;
-    switch(sortedEvents[index].event) {
+    switch (sortedEvents[index].event) {
       case 'NodeOnboarded':
         nodesState[nodeAddress] = {
           nodeAddress,

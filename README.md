@@ -28,6 +28,7 @@ To run a script execute one of the following commands:
 ```
 yarn sync_bundles
 yarn sync_nodes
+yarn challenge_stats
 ```
 
 To work properly, scripts need a set of parameters. You can either use one of predefined set of parameters or provide them manually.
@@ -37,7 +38,7 @@ yarn test:sync_bundles
 ```
 Example of running one of the scripts with manually provided set of parameters:
 ```
-yarn sync_bundles -o custom_output_directory/bundles.json -e test
+yarn sync_bundles -o custom_output_directory/bundles.json -e test -n 1000
 ```
 
 ## Script parameters
