@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "ambrosus-node-contracts": "0.0.40",
+    "ambrosus-node-contracts": "0.0.53",
     "ascii-histogram": "1.2.0",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@types/cli-progress": "1.8.0",
     "@types/command-line-args": "^5.0.0",
+    "@types/lodash": "^4.14.123",
     "@types/node": "^11.9.6",
     "@types/web3": "^1.0.18",
     "ts-node": "^8.0.2",

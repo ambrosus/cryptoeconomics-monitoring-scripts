@@ -3,7 +3,7 @@ import {parseArgs, printHelp, printInfo, printSuccess} from './utils/dialog_util
 import {defineBlockRange} from './utils/event_utils';
 import {IChallenge, ICreatedChallenge, IEvent, IResolvedChallenge, ITimedOutChallenge} from './utils/type_utils';
 import {saveData} from './utils/file_utils';
-import _ from 'lodash';
+import _, {LoDashImplicitWrapper} from 'lodash';
 import asciiHistogram from 'ascii-histogram';
 
 const additionalOptions = [{
@@ -44,7 +44,7 @@ Resolved challenges: ${challenges.resolvedChallenges.length}
 Timed out challenges: ${challenges.timedOutChallenges.length}`);
 };
 
-const getResolversStakes = async (address, atlasStakeStoreWrapper) => {
+const getResolversStakes = async (address, atlasStakeStoreWrapper): Promise<{ address: string, stake: string }> => {
   return {
     address,
     stake: await (await atlasStakeStoreWrapper.contract()).methods.getStake(address).call()
@@ -59,15 +59,37 @@ const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
 };
 
+const challengeResolutionTimeByNodeStats = (challengesCreatedByResolver: LoDashImplicitWrapper<any>): {[key: string]: {avg: number, median: number, min: number, max: number}} => {
+  const challengesCreatedByResolverBlocksDiff = challengesCreatedByResolver
+    .mapValues((challenges) => _(challenges)
+      .map((challenge) => challenge.blockNumber)
+      .map((blockNumber, key, collection) => blockNumber - collection[key - 1])
+      .tail()
+    );
+  return challengesCreatedByResolverBlocksDiff.mapValues((blockDiffs) => ({
+    avg: blockDiffs.mean() || 0,
+    median: blockDiffs.sort().nth(blockDiffs.size() / 2) || 0,
+    min: blockDiffs.min() || 0,
+    max: blockDiffs.max() || 0
+  })).value();
+};
+
+const formatStake = (stake) => stake.replace(/0{21}$/, 'K');
+
 const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[], atlasStakeStoreWrapper) => {
-  const challengesCreatedByResolver = _(resolvedChallenges)
-      .groupBy((challenge) => challenge.resolverId)
-      .mapValues((challenges) => challenges.length);
-  const resolverIds = _(challengesCreatedByResolver).keys();
-  const resolversWithStakesPromises = resolverIds.map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper));
+  const challengesCreatedByResolver = _(resolvedChallenges).groupBy((challenge) => challenge.resolverId);
+  const challengesCreatedByResolverCount = challengesCreatedByResolver.mapValues((challenges) => challenges.length);
+  const resolverIds = _(challengesCreatedByResolverCount).keys();
+  const resolversWithStakesPromises = resolverIds.map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper)).value();
   const resolversWithStakes = _(await Promise.all(resolversWithStakesPromises)).keyBy('address').value();
-  const challengesCreatedByResolverWithStakes = challengesCreatedByResolver
-      .mapKeys((value, resolverId) => `${resolversWithStakes[resolverId].address}(${resolversWithStakes[resolverId].stake})`).value();
+  const resolveTime = challengeResolutionTimeByNodeStats(challengesCreatedByResolver);
+  const challengesCreatedByResolverWithStakes = challengesCreatedByResolverCount
+    .toPairs()
+    .sortBy(([resolverId]) => -resolversWithStakes[resolverId].stake)
+    .fromPairs()
+    .mapValues((value, key) => `count: ${value} avg: ${resolveTime[key].avg.toFixed(2)}, med: ${resolveTime[key].median}, min: ${resolveTime[key].min}, max: ${resolveTime[key].max}`)
+    .mapKeys((value, resolverId) => `${resolversWithStakes[resolverId].address}(${formatStake(resolversWithStakes[resolverId].stake)})`)
+    .value();
   printInfo(`\nChallenges by resolver:`);
   console.log(JSON.stringify(challengesCreatedByResolverWithStakes, null, 2));
 };
@@ -91,6 +113,18 @@ const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlo
   }
   printInfo('\nNew challenges by block histogram');
   console.log(asciiHistogram(namedHistogram));
+};
+
+const printChallengeResolutionTimeStats = (createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[]) => {
+  const createdChallengeBlocks = _(createdChallenges).keyBy('challengeId').mapValues('blockNumber').value();
+  const challengeResolutionTimes = _(resolvedChallenges)
+    .filter(({challengeId}) => createdChallengeBlocks[challengeId] !== undefined)
+    .map(({challengeId, blockNumber}) => blockNumber - createdChallengeBlocks[challengeId]);
+  const mean = challengeResolutionTimes.mean();
+  const median = challengeResolutionTimes.sort().nth(challengeResolutionTimes.size() / 2);
+  const max = challengeResolutionTimes.max();
+  const min = challengeResolutionTimes.min();
+  console.log(`Challenge resolution time: count: ${challengeResolutionTimes.size()} avg: ${mean} median: ${median} min: ${min} max: ${max}`);
 };
 
 const extractDataFromEvents = (events: IEvent[], lastParamName: 'count' | 'resolverId' | 'penalty'): IChallenge[] =>
@@ -128,6 +162,7 @@ const fetchChallengeStats = async (): Promise<void> => {
   printChallengesCreatedByShelterer(challenges.createdChallenges);
   await printChallengesByResolver(challenges.resolvedChallenges, atlasStakeStoreWrapper);
   printChallengeHistogram(challenges.createdChallenges, fromBlock, toBlock, options.bins);
+  printChallengeResolutionTimeStats(challenges.createdChallenges, challenges.resolvedChallenges);
 
   if (options.out) {
     printInfo(`Saving output...`);

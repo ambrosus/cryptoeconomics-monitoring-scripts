@@ -21,6 +21,11 @@
   resolved "https://registry.yarnpkg.com/@types/command-line-args/-/command-line-args-5.0.0.tgz#484e704d20dbb8754a8f091eee45cdd22bcff28c"
   integrity sha512-4eOPXyn5DmP64MCMF8ePDvdlvlzt2a+F8ZaVjqmh2yFCpGjc1kI3kGnCFYX9SCsGTjQcWIyVZ86IHCEyjy/MNg==
 
+"@types/lodash@^4.14.123":
+  version "4.14.123"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.123.tgz#39be5d211478c8dd3bdae98ee75bb7efe4abfe4d"
+  integrity sha512-pQvPkc4Nltyx7G1Ww45OjVqUsJP4UsZm+GWJpigXgkikZqJgRm4c48g027o6tdgubWHwFRF15iFd+Y4Pmqv6+Q==
+
 "@types/node@*":
   version "11.10.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-11.10.4.tgz#3f5fc4f0f322805f009e00ab35a2ff3d6b778e42"
@@ -62,10 +67,10 @@ ajv@^6.5.5:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-ambrosus-node-contracts@0.0.40:
-  version "0.0.40"
-  resolved "https://registry.yarnpkg.com/ambrosus-node-contracts/-/ambrosus-node-contracts-0.0.40.tgz#37cd71dca7800d7e9090d0bc9444af75a20e9fa0"
-  integrity sha512-atZtugfYiP29ZnOyxTkGG7ufpuPqnZlXJ0ETY0AZEw4RrQ2linYivObToJbgspDAh3Rj+AlhWlhyQ1SqR48gBw==
+ambrosus-node-contracts@0.0.53:
+  version "0.0.53"
+  resolved "https://registry.yarnpkg.com/ambrosus-node-contracts/-/ambrosus-node-contracts-0.0.53.tgz#84a45168f82650645271ff9761c34e922adc92ac"
+  integrity sha512-0KEGDjAgfARfVSNWFdK2rE+jUS2jLF3hr+QMMQ+DsV3zBO7t51KXltwrOFlj5U+WgJd5aYfxq1CB1KW1Cc0FBQ==
   dependencies:
     babel-runtime "^6.26.0"
     bn.js "^4.11.0"
