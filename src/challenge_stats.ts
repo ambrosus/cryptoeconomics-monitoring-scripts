@@ -14,7 +14,7 @@ const additionalOptions = [{
   description: 'Maximal number of bins in the block histogram'
 }];
 
-const fetchEventsFromBlockchain = async (options): Promise<{
+const fetchEventsFromBlockchain = async (options, blockchainStateWrapper, challengesEventEmitterWrapper): Promise<{
   newChallengesEvents: IEvent[],
   resolvedChallengesEvents: IEvent[],
   timedOutChallengesEvents: IEvent[],
@@ -29,9 +29,6 @@ const fetchEventsFromBlockchain = async (options): Promise<{
     );
     throw new Error('');
   }
-  printInfo('Connecting to the chain...');
-  const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
-  const {blockchainStateWrapper, challengesEventEmitterWrapper} = await setupContracts(web3, options.headcontract);
   const {fromBlock, toBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
   printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);
   const newChallengesEvents = await challengesEventEmitterWrapper.challenges(fromBlock, toBlock);
@@ -47,12 +44,32 @@ Resolved challenges: ${challenges.resolvedChallenges.length}
 Timed out challenges: ${challenges.timedOutChallenges.length}`);
 };
 
+const getResolversStakes = async (address, atlasStakeStoreWrapper) => {
+  return {
+    address,
+    stake: await (await atlasStakeStoreWrapper.contract()).methods.getStake(address).call()
+  };
+};
+
 const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[]) => {
   const challengesCreatedByShelterer = _(createdChallenges)
     .groupBy((challenge) => challenge.sheltererId)
     .mapValues((challenges) => challenges.length);
   printInfo(`\nChallenges by shelterer:`);
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
+};
+
+const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[], atlasStakeStoreWrapper) => {
+  const challengesCreatedByResolver = _(resolvedChallenges)
+      .groupBy((challenge) => challenge.resolverId)
+      .mapValues((challenges) => challenges.length);
+  const resolverIds = _(challengesCreatedByResolver).keys();
+  const resolversWithStakesPromises = resolverIds.map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper));
+  const resolversWithStakes = _(await Promise.all(resolversWithStakesPromises)).keyBy('address').value();
+  const challengesCreatedByResolverWithStakes = challengesCreatedByResolver
+      .mapKeys((value, resolverId) => `${resolversWithStakes[resolverId].address}(${resolversWithStakes[resolverId].stake})`).value();
+  printInfo(`\nChallenges by resolver:`);
+  console.log(JSON.stringify(challengesCreatedByResolverWithStakes, null, 2));
 };
 
 const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
@@ -96,7 +113,10 @@ const extractTimedOutChallengesFromEvents = (events: IEvent[]): ITimedOutChallen
 
 const fetchChallengeStats = async (): Promise<void> => {
   const options = parseArgs(additionalOptions);
-  const {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, fromBlock, toBlock} = await fetchEventsFromBlockchain(options);
+  printInfo('Connecting to the chain...');
+  const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
+  const {blockchainStateWrapper, challengesEventEmitterWrapper, atlasStakeStoreWrapper} = await setupContracts(web3, options.headcontract);
+  const {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, fromBlock, toBlock} = await fetchEventsFromBlockchain(options, blockchainStateWrapper, challengesEventEmitterWrapper);
   const totalEventsCount = newChallengesEvents.length + resolvedChallengesEvents.length + timedOutChallengesEvents.length;
   printInfo(`${totalEventsCount} events successfully extracted`);
   const challenges = {
@@ -106,6 +126,7 @@ const fetchChallengeStats = async (): Promise<void> => {
   };
   printChallengesCount(challenges);
   printChallengesCreatedByShelterer(challenges.createdChallenges);
+  await printChallengesByResolver(challenges.resolvedChallenges, atlasStakeStoreWrapper);
   printChallengeHistogram(challenges.createdChallenges, fromBlock, toBlock, options.bins);
 
   if (options.out) {
