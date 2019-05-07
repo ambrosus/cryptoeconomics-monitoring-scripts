@@ -3,8 +3,9 @@ import {parseArgs, printHelp, printInfo, printSuccess} from './utils/dialog_util
 import {defineBlockRange} from './utils/event_utils';
 import {IChallenge, ICreatedChallenge, IEvent, IResolvedChallenge, ITimedOutChallenge} from './utils/type_utils';
 import {saveData} from './utils/file_utils';
-import _, {LoDashImplicitWrapper} from 'lodash';
+import _ from 'lodash';
 import asciiHistogram from 'ascii-histogram';
+import chalk from 'chalk';
 
 const additionalOptions = [{
   name: 'bins',
@@ -59,39 +60,32 @@ const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
 };
 
-const challengeResolutionTimeByNodeStats = (challengesCreatedByResolver: LoDashImplicitWrapper<any>): {[key: string]: {avg: number, median: number, min: number, max: number}} => {
-  const challengesCreatedByResolverBlocksDiff = challengesCreatedByResolver
-    .mapValues((challenges) => _(challenges)
-      .map((challenge) => challenge.blockNumber)
-      .map((blockNumber, key, collection) => blockNumber - collection[key - 1])
-      .tail()
-    );
-  return challengesCreatedByResolverBlocksDiff.mapValues((blockDiffs) => ({
-    avg: blockDiffs.mean() || 0,
-    median: blockDiffs.sort().nth(blockDiffs.size() / 2) || 0,
-    min: blockDiffs.min() || 0,
-    max: blockDiffs.max() || 0
-  })).value();
-};
-
 const formatStake = (stake) => stake.replace(/0{21}$/, 'K');
 
+const formatDeviation = (mean, value) => value > mean
+  ? chalk.green(`+${((value - mean) * 100 / mean).toFixed(2)}%`)
+  : chalk.red(`-${((mean - value) * 100 / mean).toFixed(2)}%`);
+
+const formatNodeChallengeStats = (resolverId, resolvedCount, tier, tierResolutionCountMean,) =>
+  `${resolverId}(${formatStake(tier)}): ${resolvedCount} (${formatDeviation(tierResolutionCountMean, resolvedCount)})`;
+
 const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[], atlasStakeStoreWrapper) => {
-  const challengesCreatedByResolver = _(resolvedChallenges).groupBy((challenge) => challenge.resolverId);
-  const challengesCreatedByResolverCount = challengesCreatedByResolver.mapValues((challenges) => challenges.length);
-  const resolverIds = _(challengesCreatedByResolverCount).keys();
+  const challengesCreatedByResolverCount = _(resolvedChallenges)
+    .groupBy((challenge) => challenge.resolverId)
+    .mapValues((challenges) => challenges.length);
+  const resolverIds = challengesCreatedByResolverCount.keys();
   const resolversWithStakesPromises = resolverIds.map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper)).value();
-  const resolversWithStakes = _(await Promise.all(resolversWithStakesPromises)).keyBy('address').value();
-  const resolveTime = challengeResolutionTimeByNodeStats(challengesCreatedByResolver);
-  const challengesCreatedByResolverWithStakes = challengesCreatedByResolverCount
-    .toPairs()
-    .sortBy(([resolverId]) => -resolversWithStakes[resolverId].stake)
-    .fromPairs()
-    .mapValues((value, key) => `count: ${value} avg: ${resolveTime[key].avg.toFixed(2)}, med: ${resolveTime[key].median}, min: ${resolveTime[key].min}, max: ${resolveTime[key].max}`)
-    .mapKeys((value, resolverId) => `${resolversWithStakes[resolverId].address}(${formatStake(resolversWithStakes[resolverId].stake)})`)
+  const resolversWithStakes = _(await Promise.all(resolversWithStakesPromises)).keyBy('address').mapValues('stake');
+  const challengesByStakes = resolversWithStakes
+    .invertBy()
+    .mapValues((addresses) => _(addresses).map((address) => challengesCreatedByResolverCount.get(address)).mean())
     .value();
+
   printInfo(`\nChallenges by resolver:`);
-  console.log(JSON.stringify(challengesCreatedByResolverWithStakes, null, 2));
+  challengesCreatedByResolverCount
+    .toPairs()
+    .sortBy(([resolverId]) => -resolversWithStakes.get(resolverId))
+    .forEach(([resolverId, count]) => console.log(formatNodeChallengeStats(resolverId, count, resolversWithStakes.get(resolverId), challengesByStakes[resolversWithStakes.get(resolverId)])));
 };
 
 const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
@@ -120,11 +114,22 @@ const printChallengeResolutionTimeStats = (createdChallenges: ICreatedChallenge[
   const challengeResolutionTimes = _(resolvedChallenges)
     .filter(({challengeId}) => createdChallengeBlocks[challengeId] !== undefined)
     .map(({challengeId, blockNumber}) => blockNumber - createdChallengeBlocks[challengeId]);
+
+  if (challengeResolutionTimes.size() == 0) {
+    printInfo('\nNo challenges were both created and resolved in this block range');
+    return;
+  }
+
   const mean = challengeResolutionTimes.mean();
   const median = challengeResolutionTimes.sort().nth(challengeResolutionTimes.size() / 2);
   const max = challengeResolutionTimes.max();
   const min = challengeResolutionTimes.min();
-  console.log(`Challenge resolution time: count: ${challengeResolutionTimes.size()} avg: ${mean} median: ${median} min: ${min} max: ${max}`);
+  printInfo(`Challenge resolution times: 
+    challenges: ${challengeResolutionTimes.size()}
+    avg: ${mean.toFixed(2)} blocks
+    median: ${median} blocks
+    min: ${min} blocks
+    max: ${max} blocks`);
 };
 
 const extractDataFromEvents = (events: IEvent[], lastParamName: 'count' | 'resolverId' | 'penalty'): IChallenge[] =>
