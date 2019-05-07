@@ -3,9 +3,11 @@ import {parseArgs, printHelp, printInfo, printSuccess} from './utils/dialog_util
 import {defineBlockRange} from './utils/event_utils';
 import {IChallenge, ICreatedChallenge, IEvent, IResolvedChallenge, ITimedOutChallenge} from './utils/type_utils';
 import {saveData} from './utils/file_utils';
-import _ from 'lodash';
+import _, {LoDashImplicitWrapper} from 'lodash';
 import asciiHistogram from 'ascii-histogram';
 import chalk from 'chalk';
+
+type Lodash<T> = LoDashImplicitWrapper<T>;
 
 const additionalOptions = [{
   name: 'bins',
@@ -45,7 +47,7 @@ Resolved challenges: ${challenges.resolvedChallenges.length}
 Timed out challenges: ${challenges.timedOutChallenges.length}`);
 };
 
-const getResolversStakes = async (address, atlasStakeStoreWrapper): Promise<{ address: string, stake: string }> => {
+export const getResolversStakes = async (address, atlasStakeStoreWrapper): Promise<{ address: string, stake: string }> => {
   return {
     address,
     stake: await (await atlasStakeStoreWrapper.contract()).methods.getStake(address).call()
@@ -60,32 +62,62 @@ const printChallengesCreatedByShelterer = (createdChallenges: ICreatedChallenge[
   console.log(JSON.stringify(challengesCreatedByShelterer, null, 2));
 };
 
-const formatStake = (stake) => stake.replace(/0{21}$/, 'K');
+export const formatStake = (stake: string): string => stake.replace(/0{21}$/, 'K');
 
-const formatDeviation = (mean, value) => value > mean
+export const formatDeviation = (mean: number, value: number): string => value > mean
   ? chalk.green(`+${((value - mean) * 100 / mean).toFixed(2)}%`)
   : chalk.red(`-${((mean - value) * 100 / mean).toFixed(2)}%`);
 
-const formatNodeChallengeStats = (resolverId, resolvedCount, tier, tierResolutionCountMean,) =>
+export const formatNodeChallengeStats = (resolverId: string, resolvedCount: number, tier: string, tierResolutionCountMean: number): string =>
   `${resolverId}(${formatStake(tier)}): ${resolvedCount} (${formatDeviation(tierResolutionCountMean, resolvedCount)})`;
 
-const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[], atlasStakeStoreWrapper) => {
-  const challengesCreatedByResolverCount = _(resolvedChallenges)
-    .groupBy((challenge) => challenge.resolverId)
-    .mapValues((challenges) => challenges.length);
-  const resolverIds = challengesCreatedByResolverCount.keys();
-  const resolversWithStakesPromises = resolverIds.map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper)).value();
-  const resolversWithStakes = _(await Promise.all(resolversWithStakesPromises)).keyBy('address').mapValues('stake');
-  const challengesByStakes = resolversWithStakes
+export const formatResolutionsByTiers = (challengesByTier) => _(challengesByTier)
+  .mapValues(({min, max, count, mean, total}) => `total: ${total} nodes: ${count} mean: ${mean.toFixed(2)} min: ${min} max: ${max}`)
+  .mapKeys((_, stake) => formatStake(stake))
+  .value();
+
+export const getChallengesCreatedByResolverCount = (resolvedChallenges: IResolvedChallenge[]): Lodash<{ [resolverId: string]: number }> => _(resolvedChallenges)
+  .groupBy((challenge) => challenge.resolverId)
+  .mapValues((challenges) => challenges.length);
+
+export const mapResolversToStakes = async (challengesCreatedByResolverCount: Lodash<{ [resolverId: string]: number }>,
+                                           atlasStakeStoreWrapper): Promise<Lodash<{ [address: string]: string }>> => {
+  const resolversWithStakesPromises = challengesCreatedByResolverCount
+    .keys()
+    .map((resolverId) => getResolversStakes(resolverId, atlasStakeStoreWrapper)).value();
+  return _(await Promise.all(resolversWithStakesPromises)).keyBy('address').mapValues('stake');
+};
+
+export const getChallengesByTierStats = (challengesCreatedByResolverCount: Lodash<{ [resolverId: string]: number }>,
+                                         resolversWithStakes: Lodash<{ [address: string]: string }>): {
+  [stake: string]: { mean: number, total: number, max: number, min: number, count: number }
+} =>
+  resolversWithStakes
     .invertBy()
-    .mapValues((addresses) => _(addresses).map((address) => challengesCreatedByResolverCount.get(address)).mean())
+    .mapValues((addresses) => _(addresses).map((address) => challengesCreatedByResolverCount.get(address)))
+    .mapValues((stakes) => ({
+      mean: stakes.mean(),
+      total: stakes.sum(),
+      min: stakes.min(),
+      max: stakes.max(),
+      count: stakes.size()
+    }))
     .value();
+
+const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[], atlasStakeStoreWrapper) => {
+  const challengesCreatedByResolverCount = getChallengesCreatedByResolverCount(resolvedChallenges);
+  const resolversWithStakes = await mapResolversToStakes(challengesCreatedByResolverCount, atlasStakeStoreWrapper);
+  const challengesByTiers = getChallengesByTierStats(challengesCreatedByResolverCount, resolversWithStakes);
 
   printInfo(`\nChallenges by resolver:`);
   challengesCreatedByResolverCount
     .toPairs()
     .sortBy(([resolverId]) => -resolversWithStakes.get(resolverId))
-    .forEach(([resolverId, count]) => console.log(formatNodeChallengeStats(resolverId, count, resolversWithStakes.get(resolverId), challengesByStakes[resolversWithStakes.get(resolverId)])));
+    .forEach(([resolverId, count]) => console.log(
+      formatNodeChallengeStats(resolverId, count, resolversWithStakes.get(resolverId), challengesByTiers[resolversWithStakes.get(resolverId)].mean)));
+
+  printInfo(`\nResolutions in Atlas tier groups`);
+  console.log(JSON.stringify(formatResolutionsByTiers(challengesByTiers), null, 2));
 };
 
 const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
@@ -109,23 +141,36 @@ const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlo
   console.log(asciiHistogram(namedHistogram));
 };
 
-const printChallengeResolutionTimeStats = (createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[]) => {
+export const getChallengeResolutionTimeStats = (createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[]): {
+  mean?: number, median?: number, max?: number, min?: number, count: number
+} => {
   const createdChallengeBlocks = _(createdChallenges).keyBy('challengeId').mapValues('blockNumber').value();
   const challengeResolutionTimes = _(resolvedChallenges)
     .filter(({challengeId}) => createdChallengeBlocks[challengeId] !== undefined)
     .map(({challengeId, blockNumber}) => blockNumber - createdChallengeBlocks[challengeId]);
 
-  if (challengeResolutionTimes.size() == 0) {
+  if (challengeResolutionTimes.size() === 0) {
+    return {count: 0};
+  }
+  return {
+    mean: challengeResolutionTimes.mean(),
+    median: challengeResolutionTimes.sort().nth(challengeResolutionTimes.size() / 2),
+    max: challengeResolutionTimes.max(),
+    min: challengeResolutionTimes.min(),
+    count: challengeResolutionTimes.size()
+  };
+};
+
+const printChallengeResolutionTimeStats = (createdChallenges: ICreatedChallenge[], resolvedChallenges: IResolvedChallenge[]) => {
+  const {mean, median, max, min, count} = getChallengeResolutionTimeStats(createdChallenges, resolvedChallenges);
+
+  if (count === 0) {
     printInfo('\nNo challenges were both created and resolved in this block range');
     return;
   }
 
-  const mean = challengeResolutionTimes.mean();
-  const median = challengeResolutionTimes.sort().nth(challengeResolutionTimes.size() / 2);
-  const max = challengeResolutionTimes.max();
-  const min = challengeResolutionTimes.min();
-  printInfo(`Challenge resolution times: 
-    challenges: ${challengeResolutionTimes.size()}
+  printInfo(`Challenge resolution times:
+    challenges: ${count}
     avg: ${mean.toFixed(2)} blocks
     median: ${median} blocks
     min: ${min} blocks
@@ -150,25 +195,32 @@ const extractResolvedChallengesFromEvents = (events: IEvent[]): IResolvedChallen
 
 const extractTimedOutChallengesFromEvents = (events: IEvent[]): ITimedOutChallenge[] => extractDataFromEvents(events, 'penalty') as ITimedOutChallenge[];
 
-const fetchChallengeStats = async (): Promise<void> => {
-  const options = parseArgs(additionalOptions);
-  printInfo('Connecting to the chain...');
+const fetchChallenges = async (options): Promise<{
+  challenges: {
+    createdChallenges: ICreatedChallenge[],
+    resolvedChallenges: IResolvedChallenge[],
+    timedOutChallenges: ITimedOutChallenge[]
+  },
+  atlasStakeStoreWrapper: any,
+  fromBlock: number,
+  toBlock: number
+}> => {
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
   const {blockchainStateWrapper, challengesEventEmitterWrapper, atlasStakeStoreWrapper} = await setupContracts(web3, options.headcontract);
   const {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, fromBlock, toBlock} = await fetchEventsFromBlockchain(options, blockchainStateWrapper, challengesEventEmitterWrapper);
-  const totalEventsCount = newChallengesEvents.length + resolvedChallengesEvents.length + timedOutChallengesEvents.length;
-  printInfo(`${totalEventsCount} events successfully extracted`);
-  const challenges = {
-    createdChallenges: extractCreatedChallengesFromEvents(newChallengesEvents),
-    resolvedChallenges: extractResolvedChallengesFromEvents(resolvedChallengesEvents),
-    timedOutChallenges: extractTimedOutChallengesFromEvents(timedOutChallengesEvents)
+  return {
+    challenges: {
+      createdChallenges: extractCreatedChallengesFromEvents(newChallengesEvents),
+      resolvedChallenges: extractResolvedChallengesFromEvents(resolvedChallengesEvents),
+      timedOutChallenges: extractTimedOutChallengesFromEvents(timedOutChallengesEvents)
+    },
+    atlasStakeStoreWrapper,
+    fromBlock,
+    toBlock
   };
-  printChallengesCount(challenges);
-  printChallengesCreatedByShelterer(challenges.createdChallenges);
-  await printChallengesByResolver(challenges.resolvedChallenges, atlasStakeStoreWrapper);
-  printChallengeHistogram(challenges.createdChallenges, fromBlock, toBlock, options.bins);
-  printChallengeResolutionTimeStats(challenges.createdChallenges, challenges.resolvedChallenges);
+};
 
+const saveChallenges = async (options, challenges): Promise<void> => {
   if (options.out) {
     printInfo(`Saving output...`);
     await saveData(challenges, options.out);
@@ -178,4 +230,26 @@ const fetchChallengeStats = async (): Promise<void> => {
   }
 };
 
-fetchChallengeStats().catch(console.error);
+const printTotalChallengesCount = (challenges: { createdChallenges: any[], resolvedChallenges: any[], timedOutChallenges: any[] }): void => {
+  const totalEventsCount = challenges.createdChallenges.length + challenges.resolvedChallenges.length + challenges.timedOutChallenges.length;
+  printInfo(`${totalEventsCount} events successfully extracted`);
+};
+
+const fetchChallengeStats = async (): Promise<void> => {
+  const options = parseArgs(additionalOptions);
+  printInfo('Connecting to the chain...');
+  const {challenges, atlasStakeStoreWrapper, fromBlock, toBlock} = await fetchChallenges(options);
+
+  printTotalChallengesCount(challenges);
+  printChallengesCount(challenges);
+  printChallengesCreatedByShelterer(challenges.createdChallenges);
+  await printChallengesByResolver(challenges.resolvedChallenges, atlasStakeStoreWrapper);
+  printChallengeHistogram(challenges.createdChallenges, fromBlock, toBlock, options.bins);
+  printChallengeResolutionTimeStats(challenges.createdChallenges, challenges.resolvedChallenges);
+
+  await saveChallenges(options, challenges);
+};
+
+if (require.main === module) {
+  fetchChallengeStats().catch(console.error);
+}

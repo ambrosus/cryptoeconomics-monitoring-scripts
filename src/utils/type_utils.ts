@@ -22,7 +22,7 @@ interface IChallenge {
 }
 
 interface ICreatedChallenge extends IChallenge {
-  count: number;
+  count: string;
 }
 
 interface IResolvedChallenge extends IChallenge {
