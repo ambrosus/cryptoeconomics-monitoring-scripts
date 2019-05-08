@@ -25,7 +25,7 @@
     "test:sync_nodes": "yarn sync_nodes -o output/nodes.json -e test",
     "dev:sync_nodes": "yarn sync_nodes -o output/nodes.json -e dev",
     "local:sync_nodes": "yarn sync_nodes -o output/nodes.json --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
-    "challenge_stats": "ts-node src/challenge_stats.ts",
+    "challenge_stats": "ts-node src/challenge_stats.ts --max-old-space-size",
     "test:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test",
     "dev:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e dev",
     "local:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
