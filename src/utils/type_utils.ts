@@ -22,7 +22,7 @@ interface IChallenge {
 }
 
 interface ICreatedChallenge extends IChallenge {
-  count: number;
+  count: string;
 }
 
 interface IResolvedChallenge extends IChallenge {
@@ -34,3 +34,11 @@ interface ITimedOutChallenge extends IChallenge {
 }
 
 export {IBlockRange, IEvent, ICreatedChallenge, IResolvedChallenge, ITimedOutChallenge, IChallenge};
+
+export interface ITierStat {
+  mean: number;
+  total: number;
+  max: number;
+  min: number;
+  count: number;
+}
