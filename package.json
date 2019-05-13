@@ -12,6 +12,7 @@
     "command-line-args": "^5.0.2",
     "command-line-usage": "^5.0.5",
     "lodash": "^4.17.11",
+    "node-fetch": "^2.5.0",
     "web3": "1.0.0-beta.34"
   },
   "scripts": {
@@ -29,7 +30,8 @@
     "test:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test",
     "dev:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e dev",
     "local:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
-    "lint": "tslint 'src/**/*.ts' --fix"
+    "lint": "tslint 'src/**/*.ts' --fix",
+    "to_csv": "cat ${0} | jq -r '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv'"
   },
   "devDependencies": {
     "@types/cli-progress": "1.8.0",
