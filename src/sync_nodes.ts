@@ -1,5 +1,5 @@
 import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
-import {printInfo, setupBar, printSuccess, parseArgs, printHelp} from './utils/dialog_utils';
+import {printInfo, setupBar, printSuccess, parseArgs} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
 
@@ -38,7 +38,7 @@ const syncBundles = async (): Promise<void> => {
         };
         break;
       case 'NodeUrlChanged':
-        nodesState[nodeAddress].url = sortedEvents[index].returnValues.nodeUrl;
+        nodesState[nodeAddress].url = sortedEvents[index].returnValues.newNodeUrl;
         break;
       case 'NodeRetired':
         delete nodesState[nodeAddress];
