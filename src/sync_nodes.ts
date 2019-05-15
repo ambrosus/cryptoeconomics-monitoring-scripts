@@ -1,7 +1,17 @@
 import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
 import {printInfo, setupBar, printSuccess, parseArgs} from './utils/dialog_utils';
 import {saveData} from './utils/file_utils';
+import fetch from 'node-fetch';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
+
+const fetchCommit = async ({url}) => {
+  try {
+    const {commit} = await (await fetch(`${url}/nodeinfo`)).json();
+    return commit;
+  } catch (e) {
+    return null;
+  }
+};
 
 const syncBundles = async (): Promise<void> => {
   const options = parseArgs();
@@ -46,8 +56,14 @@ const syncBundles = async (): Promise<void> => {
     }
     progressBar.increment(1);
   }
-
-  const nodeStateArray = Object.values(nodesState);
+  printInfo('Fetching nodes commit...');
+  const nodeStateArray: {commit?, url}[] = Object.values(nodesState);
+  const commits = await Promise.all(nodeStateArray.map(fetchCommit));
+  for (let i = 0; i < nodeStateArray.length; i++) {
+    if (commits[i]) {
+      nodeStateArray[i].commit = commits[i];
+    }
+  }
   if (options.out) {
     printInfo(`Saving output...`);
     await saveData(nodeStateArray, options.out);
