@@ -6,7 +6,7 @@ import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from 
 
 const fetchCommit = async ({url}) => {
   try {
-    const {commit} = await (await fetch(`${url}/nodeinfo`)).json();
+    const {commit} = await (await fetch(`${url}/nodeinfo`, {timeout: 2000})).json();
     return commit;
   } catch (e) {
     return null;
