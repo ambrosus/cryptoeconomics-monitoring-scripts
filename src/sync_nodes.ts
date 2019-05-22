@@ -4,10 +4,10 @@ import {saveData} from './utils/file_utils';
 import fetch from 'node-fetch';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
 
-const fetchCommit = async ({url}) => {
+const fetchVersion = async ({url}) => {
   try {
-    const {commit} = await (await fetch(`${url}/nodeinfo`, {timeout: 2000})).json();
-    return commit;
+    const {version} = await (await fetch(`${url}/nodeinfo`, {timeout: 2000})).json();
+    return version;
   } catch (e) {
     return null;
   }
@@ -57,11 +57,11 @@ const syncBundles = async (): Promise<void> => {
     progressBar.increment(1);
   }
   printInfo('Fetching nodes commit...');
-  const nodeStateArray: {commit?, url}[] = Object.values(nodesState);
-  const commits = await Promise.all(nodeStateArray.map(fetchCommit));
+  const nodeStateArray: {version?, url}[] = Object.values(nodesState);
+  const versions = await Promise.all(nodeStateArray.map(fetchVersion));
   for (let i = 0; i < nodeStateArray.length; i++) {
-    if (commits[i]) {
-      nodeStateArray[i].commit = commits[i];
+    if (versions[i]) {
+      nodeStateArray[i].version = versions[i];
     }
   }
   if (options.out) {
