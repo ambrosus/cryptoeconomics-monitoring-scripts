@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
 
 const NODE_FETCH_TIMEOUT = 2000;
-const NODE_LOGS_ACTIVE_TIMEOUT = 60000;
+const NODE_LOGS_ACTIVE_TIMEOUT = 600000;
 
 const getNodeState = async ({url}): Promise<{ version: string, isActive: boolean }> => {
   try {
