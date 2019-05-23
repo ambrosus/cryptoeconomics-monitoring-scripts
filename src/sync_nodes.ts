@@ -4,10 +4,15 @@ import {saveData} from './utils/file_utils';
 import fetch from 'node-fetch';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
 
-const fetchCommit = async ({url}) => {
+const NODE_FETCH_TIMEOUT = 2000;
+const NODE_LOGS_ACTIVE_TIMEOUT = 600000;
+
+const getNodeState = async ({url}): Promise<{ version: string, isActive: boolean }> => {
   try {
-    const {commit} = await (await fetch(`${url}/nodeinfo`, {timeout: 2000})).json();
-    return commit;
+    const {version, workerLogs} = await (await fetch(`${url}/nodeinfo`, {timeout: NODE_FETCH_TIMEOUT})).json();
+    const isActive = workerLogs.length !== 0 &&
+      (new Date().getTime() - new Date(workerLogs[0].timestamp).getTime() < NODE_LOGS_ACTIVE_TIMEOUT);
+    return {version, isActive};
   } catch (e) {
     return null;
   }
@@ -57,11 +62,12 @@ const syncBundles = async (): Promise<void> => {
     progressBar.increment(1);
   }
   printInfo('Fetching nodes commit...');
-  const nodeStateArray: {commit?, url}[] = Object.values(nodesState);
-  const commits = await Promise.all(nodeStateArray.map(fetchCommit));
+  const nodeStateArray: {version?, isActive?, url}[] = Object.values(nodesState);
+  const nodeStates = await Promise.all(nodeStateArray.map(getNodeState));
   for (let i = 0; i < nodeStateArray.length; i++) {
-    if (commits[i]) {
-      nodeStateArray[i].commit = commits[i];
+    if (nodeStates[i]) {
+      nodeStateArray[i].version = nodeStates[i].version;
+      nodeStateArray[i].isActive = nodeStates[i].isActive;
     }
   }
   if (options.out) {
