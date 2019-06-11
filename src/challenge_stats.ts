@@ -157,7 +157,7 @@ const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[
   console.log(formatDistribution(_(challengesByTiers).mapValues('mean')));
 };
 
-const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
+const printChallengeHistogram = (createdChallenges: IChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
   const blockCount = toBlockInclusive - fromBlockInclusive + 1;
   const binLength = Math.ceil(blockCount / binCount);
   const bins = _(createdChallenges)
@@ -174,7 +174,6 @@ const printChallengeHistogram = (createdChallenges: ICreatedChallenge[], fromBlo
     }
     namedHistogram[`${binStartBlock}-${binEndBlock}`] = bins[i] || 0;
   }
-  printInfo('\nNew challenges by block histogram');
   console.log(asciiHistogram(namedHistogram));
 };
 
@@ -266,7 +265,10 @@ const fetchChallengeStats = async (): Promise<void> => {
   printChallengesCount(challenges);
   printChallengesCreatedByShelterer(challenges.createdChallenges);
   await printChallengesByResolver(challenges.resolvedChallenges, atlasStakeStoreWrapper);
+  printInfo('\nNew challenges by block histogram');
   printChallengeHistogram(challenges.createdChallenges, fromBlock, toBlock, options.bins);
+  printInfo('\nResolved challenges by block histogram');
+  printChallengeHistogram(challenges.resolvedChallenges, fromBlock, toBlock, options.bins);
   printChallengeResolutionTimeStats(challenges.createdChallenges, challenges.resolvedChallenges);
 
   await saveChallenges(options, challenges);
