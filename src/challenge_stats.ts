@@ -157,10 +157,10 @@ const printChallengesByResolver = async (resolvedChallenges: IResolvedChallenge[
   console.log(formatDistribution(_(challengesByTiers).mapValues('mean')));
 };
 
-const printChallengeHistogram = (createdChallenges: IChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
+const printChallengeHistogram = (challenges: IChallenge[], fromBlockInclusive: number, toBlockInclusive: number, binCount: number = 10) => {
   const blockCount = toBlockInclusive - fromBlockInclusive + 1;
   const binLength = Math.ceil(blockCount / binCount);
-  const bins = _(createdChallenges)
+  const bins = _(challenges)
     .map((challenge) => Math.floor((challenge.blockNumber - fromBlockInclusive) / binLength))
     .countBy(_.identity())
     .value();
