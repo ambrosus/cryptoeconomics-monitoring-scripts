@@ -4,9 +4,15 @@ import {saveData} from './utils/file_utils';
 import {sortChronologically, convertWeiToAmber} from './utils/event_utils';
 import {constants} from 'ambrosus-node-contracts';
 
+const additionalOptions = [{
+  name: 'roundcount',
+  alias: 'r',
+  type: Number,
+  description: 'How many recent consensus rounds we want to scan'
+}];
 
 const miningStats = async (): Promise<void> => {
-  const options = parseArgs();
+  const options = parseArgs(additionalOptions);
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
   if (!options.roundcount || options.roundcount < 0) {
     printHelp({
@@ -25,7 +31,7 @@ const miningStats = async (): Promise<void> => {
   const gatheredEvents = [...nodeOnboardingEvents, ...nodeRetirementEvents];
 
   printInfo(`Sorting and filtering events...`);
-  const sortedAndFilteredEvents = sortChronologically(gatheredEvents.filter(event => event.returnValues.role === constants.APOLLO));
+  const sortedAndFilteredEvents = sortChronologically(gatheredEvents.filter((event) => event.returnValues.role === constants.APOLLO));
 
   const totalEventsNumber = sortedAndFilteredEvents.length;
   printInfo(`${totalEventsNumber} events successfully extracted`);
@@ -59,8 +65,8 @@ const miningStats = async (): Promise<void> => {
 
   for (let index = 0; index < blockCount; index++) {
     const block = await web3.eth.getBlock(currentBlockNumber - index);
-    if(nodesState[block.miner] !== undefined) {
-      nodesState[block.miner].blocksMined++
+    if (nodesState[block.miner] !== undefined) {
+      nodesState[block.miner].blocksMined++;
     }
     blocksProgressBar.increment(1);
   }
