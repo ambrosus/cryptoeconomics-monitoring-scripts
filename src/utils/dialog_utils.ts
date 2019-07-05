@@ -13,6 +13,7 @@ const printSuccess = (text: string): void => {
 
 const optionDefinitions = [
   {name: 'blockcount', alias: 'n', type: Number, description: 'How many recent blocks we want to scan'},
+  {name: 'roundcount', alias: 'r', type: Number, description: 'How many recent consensus rounds we want to scan'},
   {
     name: 'env',
     alias: 'e',
