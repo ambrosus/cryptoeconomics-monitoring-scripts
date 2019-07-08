@@ -49,7 +49,8 @@ const syncBundles = async (): Promise<void> => {
           nodeAddress,
           role: convertRoleCodeToRoleName(sortedEvents[index].returnValues.role),
           deposit: convertWeiToAmber(sortedEvents[index].returnValues.placedDeposit),
-          url: sortedEvents[index].returnValues.nodeUrl
+          url: sortedEvents[index].returnValues.nodeUrl,
+          block: sortedEvents[index].blockNumber
         };
         break;
       case 'NodeUrlChanged':
