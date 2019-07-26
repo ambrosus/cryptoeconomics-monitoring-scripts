@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "ambrosus-node-contracts": "0.0.53",
+    "ambrosus-node-contracts": "0.0.61",
     "ascii-histogram": "1.2.0",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",

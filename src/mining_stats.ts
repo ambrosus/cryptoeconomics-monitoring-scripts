@@ -22,7 +22,7 @@ const miningStats = async (): Promise<void> => {
     return;
   }
 
-  const {blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract);
+  const {validatorSetWrapper, blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract, options.validatorsetcontract);
   const currentBlockNumber = await blockchainStateWrapper.getCurrentBlockNumber();
 
   printInfo(`Fetching ${currentBlockNumber} blocks`);
@@ -47,8 +47,10 @@ const miningStats = async (): Promise<void> => {
       case 'NodeOnboarded':
         nodesState[nodeAddress] = {
           nodeAddress,
-          deposit: convertWeiToAmber(sortedAndFilteredEvents[index].returnValues.placedDeposit),
-          blocksMined: 0
+          blocksMined: 0,
+          validator: false,
+          onboarded: true,
+          deposit: convertWeiToAmber(sortedAndFilteredEvents[index].returnValues.placedDeposit)
         };
         break;
       case 'NodeRetired':
@@ -58,20 +60,32 @@ const miningStats = async (): Promise<void> => {
     eventsProgressBar.increment(1);
   }
 
-  const blockCount = options.roundcount * Object.keys(nodesState).length;
+  printInfo(`Checking current validator set...`);
+  const validatorSet = await validatorSetWrapper.getValidators();
+
+  const nodeStateCheckedWithValidatorSet = validatorSet.reduce((nodes, current) => {
+    nodes[current] = {
+      nodeAddress: current,
+      blocksMined: 0,
+      onboarded: nodes[current] !== undefined,
+      validator: true};
+    return nodes;
+  }, nodesState);
+
+  const blockCount = options.roundcount * Object.keys(nodeStateCheckedWithValidatorSet).length;
 
   printInfo(`Fetching blocks...`);
   const blocksProgressBar = await setupBar(blockCount);
 
   for (let index = 0; index < blockCount; index++) {
     const block = await web3.eth.getBlock(currentBlockNumber - index);
-    if (nodesState[block.miner] !== undefined) {
-      nodesState[block.miner].blocksMined++;
+    if (nodeStateCheckedWithValidatorSet[block.miner] !== undefined) {
+      nodeStateCheckedWithValidatorSet[block.miner].blocksMined++;
     }
     blocksProgressBar.increment(1);
   }
 
-  const gatheredApollosData = Object.values(nodesState);
+  const gatheredApollosData = Object.values(nodeStateCheckedWithValidatorSet);
 
   if (options.out) {
     printInfo(`Saving output...`);
