@@ -64,11 +64,15 @@ const miningStats = async (): Promise<void> => {
   const validatorSet = await validatorSetWrapper.getValidators();
 
   const nodeStateCheckedWithValidatorSet = validatorSet.reduce((nodes, current) => {
+    if (nodes[current] !== undefined) {
+      nodes[current].validator = true;
+    } else {
     nodes[current] = {
       nodeAddress: current,
       blocksMined: 0,
-      onboarded: nodes[current] !== undefined,
+      onboarded: false,
       validator: true};
+    }
     return nodes;
   }, nodesState);
 
