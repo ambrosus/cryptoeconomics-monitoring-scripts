@@ -8,15 +8,18 @@ import {
   BundleStoreWrapper,
   RolesEventEmitterWrapper,
   ChallengesEventEmitterWrapper,
-  AtlasStakeStoreWrapper
+  AtlasStakeStoreWrapper,
+  ValidatorProxyWrapper
 } from 'ambrosus-node-contracts';
 
 const setupWeb3 = (rpc: string): Web3 => {
   return new Web3(rpc);
 };
 
-const setupContracts = (web3: Web3, headContractAddress: string, validatorSetContractAddress: string): any => {
+const setupContracts = async (web3: Web3, headContractAddress: string): Promise<any> => {
   const headWrapper = new HeadWrapper(headContractAddress, web3);
+  const validatorProxyWrapper = new ValidatorProxyWrapper(headWrapper, web3);
+  const validatorSetContractAddress = await (await validatorProxyWrapper.contract()).methods.validatorSet().call();
   const validatorSetWrapper = new ValidatorSetWrapper(validatorSetContractAddress, web3);
   const blockchainStateWrapper = new BlockchainStateWrapper(web3);
 

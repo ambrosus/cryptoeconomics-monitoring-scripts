@@ -242,7 +242,7 @@ const fetchChallenges = async (options): Promise<{
   toBlock: number
 }> => {
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
-  const {blockchainStateWrapper, challengesEventEmitterWrapper, atlasStakeStoreWrapper} = await setupContracts(web3, options.headcontract, options.validatorsetcontract);
+  const {blockchainStateWrapper, challengesEventEmitterWrapper, atlasStakeStoreWrapper} = await setupContracts(web3, options.headcontract);
   const {newChallengesEvents, resolvedChallengesEvents, timedOutChallengesEvents, fromBlock, toBlock} = await fetchEventsFromBlockchain(options, blockchainStateWrapper, challengesEventEmitterWrapper);
   return {
     challenges: {

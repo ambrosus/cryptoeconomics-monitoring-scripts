@@ -22,7 +22,7 @@ const miningStats = async (): Promise<void> => {
     return;
   }
 
-  const {validatorSetWrapper, blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract, options.validatorsetcontract);
+  const {validatorSetWrapper, blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract);
   const currentBlockNumber = await blockchainStateWrapper.getCurrentBlockNumber();
 
   printInfo(`Fetching ${currentBlockNumber} blocks`);

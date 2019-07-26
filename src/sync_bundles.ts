@@ -15,7 +15,7 @@ const syncBundles = async (): Promise<void> => {
     return;
   }
 
-  const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3, options.headcontract, options.validatorsetcontract);
+  const {bundleStoreWrapper, shelteringWrapper, blockchainStateWrapper, rolesWrapper} = await setupContracts(web3, options.headcontract);
   const {toBlock, fromBlock} = await defineBlockRange(blockchainStateWrapper, options.blockcount);
 
   printInfo(`Fetching ${options.blockcount} blocks (${fromBlock} -> ${toBlock})`);

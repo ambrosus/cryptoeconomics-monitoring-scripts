@@ -22,7 +22,7 @@ const syncBundles = async (): Promise<void> => {
   const options = parseArgs();
   const web3 = await setupWeb3(options.rpc || chainUrl(options.env));
 
-  const {blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract, options.validatorsetcontract);
+  const {blockchainStateWrapper, rolesEventEmitterWrapper} = await setupContracts(web3, options.headcontract);
   const currentBlockNumber = await blockchainStateWrapper.getCurrentBlockNumber();
 
   printInfo(`Fetching ${currentBlockNumber} blocks`);

@@ -27,12 +27,6 @@ const optionDefinitions = [
     type: String,
     description: 'Head contract address',
     defaultValue: '0x0000000000000000000000000000000000000F10'
-  },
-  {
-    name: 'validatorsetcontract',
-    type: String,
-    description: 'Validator set contract address',
-    defaultValue: '0x0000000000000000000000000000000000000F00'
   }
 ];
 
