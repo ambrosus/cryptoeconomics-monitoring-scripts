@@ -1,6 +1,5 @@
 import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
-import {printInfo, setupBar, printSuccess, parseArgs} from './utils/dialog_utils';
-import {saveData} from './utils/file_utils';
+import {printInfo, setupBar, presentResults, parseArgs} from './utils/dialog_utils';
 import fetch from 'node-fetch';
 import {sortChronologically, convertRoleCodeToRoleName, convertWeiToAmber} from './utils/event_utils';
 
@@ -70,13 +69,7 @@ const syncBundles = async (): Promise<void> => {
       nodeStateArray[i].isActive = nodeStates[i].isActive;
     }
   }
-  if (options.out) {
-    printInfo(`Saving output...`);
-    await saveData(nodeStateArray, options.out);
-    printSuccess(`Done!`);
-  } else {
-    console.log(JSON.stringify(nodeStateArray, null, 2));
-  }
+  await presentResults(nodeStateArray, options.out);
 };
 
 syncBundles().catch(console.log);

@@ -1,7 +1,6 @@
 import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
 import {defineBlockRange} from './utils/event_utils';
-import {printInfo, setupBar, printSuccess, printHelp, parseArgs} from './utils/dialog_utils';
-import {saveData} from './utils/file_utils';
+import {printInfo, setupBar, presentResults, printHelp, parseArgs} from './utils/dialog_utils';
 import path from 'path';
 
 const syncBundles = async (): Promise<void> => {
@@ -49,14 +48,7 @@ const syncBundles = async (): Promise<void> => {
     gatheredBundlesData.push(completeBundleData);
     progressBar.increment(1);
   }
-
-  if (options.out) {
-    printInfo(`Saving output...`);
-    await saveData(gatheredBundlesData, options.out);
-    printSuccess(`Done!`);
-  } else {
-    console.log(JSON.stringify(gatheredBundlesData, null, 2));
-  }
+  await presentResults(gatheredBundlesData, options.out);
 };
 
 syncBundles().catch(console.error);

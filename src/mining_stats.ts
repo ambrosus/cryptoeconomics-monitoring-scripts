@@ -1,6 +1,5 @@
 import {setupWeb3, setupContracts, chainUrl} from './utils/setup_utils';
-import {printInfo, setupBar, printHelp, parseArgs, printSuccess} from './utils/dialog_utils';
-import {saveData} from './utils/file_utils';
+import {printInfo, setupBar, printHelp, parseArgs, presentResults} from './utils/dialog_utils';
 import {sortChronologically, convertWeiToAmber} from './utils/event_utils';
 import {constants} from 'ambrosus-node-contracts';
 
@@ -91,13 +90,7 @@ const miningStats = async (): Promise<void> => {
 
   const gatheredApollosData = Object.values(nodeStateCheckedWithValidatorSet);
 
-  if (options.out) {
-    printInfo(`Saving output...`);
-    await saveData(gatheredApollosData, options.out);
-    printSuccess(`Done!`);
-  } else {
-    console.log(JSON.stringify(gatheredApollosData, null, 2));
-  }
+  await presentResults(gatheredApollosData, options.out);
 };
 
 miningStats().catch(console.log);

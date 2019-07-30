@@ -1,5 +1,5 @@
 import {chainUrl, setupContracts, setupWeb3} from './utils/setup_utils';
-import {parseArgs, printHelp, printInfo, printSuccess} from './utils/dialog_utils';
+import {parseArgs, printHelp, printInfo, presentResults} from './utils/dialog_utils';
 import {defineBlockRange} from './utils/event_utils';
 import {
   IChallenge,
@@ -9,7 +9,6 @@ import {
   ITierStat,
   ITimedOutChallenge
 } from './utils/type_utils';
-import {saveData} from './utils/file_utils';
 import _, {LoDashImplicitWrapper} from 'lodash';
 import asciiHistogram from 'ascii-histogram';
 import chalk from 'chalk';
@@ -198,16 +197,6 @@ const printTotalChallengesCount = (challenges: { createdChallenges: any[], resol
   printInfo(`${totalEventsCount} events successfully extracted`);
 };
 
-const saveChallenges = async (options, challenges): Promise<void> => {
-  if (options.out) {
-    printInfo(`Saving output...`);
-    await saveData(challenges, options.out);
-    printSuccess(`Done!`);
-  } else {
-    console.log(JSON.stringify(challenges, null, 2));
-  }
-};
-
 const fetchEventsFromBlockchain = async (options, blockchainStateWrapper, challengesEventEmitterWrapper): Promise<{
   newChallengesEvents: IEvent[],
   resolvedChallengesEvents: IEvent[],
@@ -271,7 +260,7 @@ const fetchChallengeStats = async (): Promise<void> => {
   printChallengeHistogram(challenges.resolvedChallenges, fromBlock, toBlock, options.bins);
   printChallengeResolutionTimeStats(challenges.createdChallenges, challenges.resolvedChallenges);
 
-  await saveChallenges(options, challenges);
+  await presentResults(challenges, options.out);
 };
 
 if (require.main === module) {
