@@ -29,6 +29,7 @@ To run a script execute one of the following commands:
 yarn sync_bundles
 yarn sync_nodes
 yarn challenge_stats
+yarn mining_stats
 ```
 
 To work properly, scripts need a set of parameters. You can either use one of predefined set of parameters or provide them manually.

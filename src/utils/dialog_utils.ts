@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import commandLineUsage from 'command-line-usage';
 import commandLineArgs, {CommandLineOptions} from 'command-line-args';
 import {Bar, Presets} from 'cli-progress';
+import {saveData} from './file_utils';
 
 const printInfo = (text: string): void => {
   console.log(chalk.yellow(text));
@@ -47,4 +48,15 @@ const setupBar = (actionsCount: number): Bar => {
   return bar;
 };
 
-export {printInfo, printSuccess, setupBar, printHelp, parseArgs};
+const presentResults = async (producedData: any, outputFileName: string | undefined): Promise<void> => {
+  if (outputFileName) {
+    printInfo(`Saving output...`);
+    await saveData(producedData, outputFileName);
+    printSuccess(`Done!`);
+  } else {
+    console.log(JSON.stringify(producedData, null, 2));
+  }
+
+};
+
+export {printInfo, printSuccess, setupBar, printHelp, parseArgs, presentResults};

@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "ambrosus-node-contracts": "0.0.53",
+    "ambrosus-node-contracts": "0.0.61",
     "ascii-histogram": "1.2.0",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
@@ -32,6 +32,11 @@
     "test:challenge_stats": "node --max_old_space_size=8192 -r ts-node/register src/challenge_stats.ts -o output/challenges.json -e test",
     "dev:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e dev",
     "local:challenge_stats": "ts-node src/challenge_stats.ts -o output/challenges.json -e test --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
+    "mining_stats": "ts-node src/mining_stats.ts",
+    "main:mining_stats": "yarn mining_stats -r 10 -o output/mining.json -e main",
+    "test:mining_stats": "yarn mining_stats -r 10 -o output/mining.json -e test",
+    "dev:mining_stats": "yarn mining_stats -r 10 -o output/mining.json -e dev",
+    "local:mining_stats": "yarn mining_stats -r 10 -o output/mining.json --rpc http://localhost:8545 --headcontract 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84",
     "lint": "tslint 'src/**/*.ts' --fix",
     "to_csv": "cat ${0} | jq -r '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv'"
   },
