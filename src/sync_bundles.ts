@@ -31,11 +31,14 @@ const syncBundles = async (): Promise<void> => {
   const gatheredBundlesData = [];
 
   for (const bundleStorageEvent of bundleStorageEvents) {
+    const block = await web3.eth.getBlock(bundleStorageEvent.blockNumber);
     const bundleDataFromEvent = {
       bundleId: bundleStorageEvent.returnValues.bundleId,
       uploaderId: bundleStorageEvent.returnValues.uploader,
       blockHash: bundleStorageEvent.blockHash,
       blockNumber: bundleStorageEvent.blockNumber,
+      blockTimestamp: block.timestamp,
+      miner: block.miner,
       transactionHash: bundleStorageEvent.transactionHash,
       signature: bundleStorageEvent.signature
     };
