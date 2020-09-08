@@ -34,6 +34,6 @@ const setupContracts = async (web3: Web3, headContractAddress: string): Promise<
     challengesEventEmitterWrapper, atlasStakeStoreWrapper, validatorSetWrapper};
 };
 
-const chainUrl = (env?: string): string => (env && env !== 'main') ? `https://network.ambrosus-${env}.com` : 'https://network.ambrosus.com';
+const chainUrl = (env?: string): string => (env && env !== 'main') ? `https://network.ambrosus-${env}.com` : 'https://network.ambrosus.io';
 
 export {setupWeb3, setupContracts, chainUrl};
